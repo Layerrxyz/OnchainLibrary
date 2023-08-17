@@ -1,0 +1,298 @@
+let colors = ["#04effa","#ff64c3","#fcf73d","#4f37ef","#98FF98","#FF6B6B"];
+let accentColors = ["#FFD700","#FF1493","#00FFFF","#00FF7F","#FF4500","#00CED1"];
+let shapes = [];
+let backgroundShapes = [];
+let cornerRadii = [];
+let colorDirection = [];
+let totalOwned = 0;
+let allSupply = 0;
+let movementEnabled = true;
+let waveLength = 0;
+let waveHeight = 0;
+let wavePosition = 0;
+
+function mouseClicked() {
+  movementEnabled = !movementEnabled;
+}
+
+function setup() {
+  let factor = 1.0;
+  let baseSize = 4096;
+  if(windowWidth > windowHeight) {
+    factor = windowHeight / baseSize;
+  } else {
+    factor = windowWidth / baseSize;
+  }
+  let initialSize = 600 * factor;
+  createCanvas(4096 * factor, 4096 * factor);
+  randomSeed(tokenSeed);
+  for(let i = 0;i < colors.length;i++) {
+	  cornerRadii.push(random(0,0.333));
+	  colorDirection.push((parseInt(random(0,50000))%4));
+  }
+  if(motionType == 2) {
+    waveLength = (tokenSeed % 1600 + 400) * factor;
+    waveHeight = (tokenSeed % 800 + 200) * factor;
+  }
+
+  for (let i = 0; i < colorSupply.length; i++) {
+    allSupply += colorSupply[i];
+  }
+  
+  let mostOwned = 0;
+  let currentMax = 0;
+  let nextSmallest = 0;
+  for (let i = 0; i < colorOwned.length; i++) {
+    totalOwned += colorOwned[i];
+    if(colorOwned[i] > currentMax) currentMax = colorOwned[i];
+    if(colorOwned[i] > mostOwned) mostOwned = colorOwned[i];
+  }
+  
+  if(backgroundType == 0 || backgroundType == 1) {
+    let aOffset = 0;
+	let sequenceIndex = 0;
+	while(sequenceIndex < 6) {
+		for(let colorIndex = 0;colorIndex < colors.length;colorIndex++) {
+		  if(sequenceIndex != colorSequence[colorIndex]) continue;
+		  if(backgroundType == 0) {
+			let rectSize = width * colorSupply[colorIndex] / allSupply;
+			backgroundShapes.push(new BackgroundShape(aOffset, 0, rectSize, height, colors[colorIndex], 0))
+			aOffset += rectSize; 
+		  } else {
+			let rectSize = height * colorSupply[colorIndex] / allSupply;
+			backgroundShapes.push(new BackgroundShape(0, aOffset, width, rectSize, colors[colorIndex], 0))
+			aOffset += rectSize; 
+		  }
+		  sequenceIndex++;
+		}
+	}
+  } else {
+    let lastSize = 0;
+	let sequenceIndex = 0;
+	let backfillColorIndex = 0;
+	while(sequenceIndex < 6) {
+	  for(let colorIndex = 0;colorIndex < colorSequence.length;colorIndex++) {
+		if(backfillColor == colorSequence[colorIndex]) backfillColorIndex = colorIndex;
+		if(sequenceIndex != colorSequence[colorIndex]) continue;
+		if(sequenceIndex == 5) {
+		  let circleDiameter = Math.sqrt(((width / 2 * width / 2 * Math.PI) * colorSupply[colorIndex] / allSupply + Math.PI * (lastSize / 2) * (lastSize / 2)) / Math.PI) * 2;
+		  backgroundShapes.push(new BackgroundShape(width / 2, height / 2, circleDiameter, circleDiameter, colors[colorIndex], 1))
+		  backgroundShapes.push(new BackgroundShape(0, 0, width, height, colors[backfillColorIndex], 0))
+		} else {
+		  let circleDiameter = Math.sqrt(((width / 2 * width / 2 * Math.PI) * colorSupply[colorIndex] / allSupply + Math.PI * (lastSize / 2) * (lastSize / 2)) / Math.PI) * 2;
+		  backgroundShapes.push(new BackgroundShape(width / 2, height / 2, circleDiameter, circleDiameter, colors[colorIndex], 1))
+		  lastSize = circleDiameter;
+		}
+		sequenceIndex++;
+	  }
+	}
+  }
+  
+  spacing = width * random(0.250, 0.750);
+  while(true && totalOwned > 0) {
+    for (let z = 0; z < colors.length; z++) {
+      if(colorOwned[z] == currentMax) {
+        let cols = floor(width / spacing);
+        let rows = floor(height / spacing);
+        if(cols == 0) cols = 1;
+        if(rows == 0) rows = 1;
+        let size = initialSize * colorOwned[z] / mostOwned;
+		if(size < 16 * factor) size = 16;
+        let cornerRadius = size * cornerRadii[z];
+        let direction = colorDirection[z];
+        let iStart = 0;
+        let jStart = 0;
+        let iAdder = 1;
+        let jAdder = 1;
+        if(direction == 1) {
+          iStart = cols - 1;
+          iAdder = -1;
+        } else if(direction == 2) {
+          jStart = rows - 1;
+          jAdder = -1;
+        } else if(direction == 3) {
+          iStart = cols - 1;
+          iAdder = -1;
+          jStart = rows - 1;
+          jAdder = -1;
+        }
+		
+		let xAdd = random(0, (width - (spacing * cols)));
+		let yAdd = random(0, (height - (spacing * rows)));
+
+        for (let i = iStart; i < cols && i >= 0; i+=iAdder) {
+          for (let j = jStart; j < rows && j >= 0; j+=jAdder) {
+            let x = i * spacing + spacing / 2 + random(-size / 2, size / 2) + xAdd;
+            let y = j * spacing + spacing / 2 + random(-size / 2, size / 2) + yAdd;
+            if (!isOverlapping(x, y, size, factor)) {
+              shapes.push(new Shape(x, y, size, cornerRadius, colors[z], accentColors[z], colorShape[z], factor, hasAccent, accentDirection));
+            }
+          }
+        }
+        spacing /= (1.0 + 1.4 * Math.log10(Math.log10(random(1000, 10000000000))));
+      } else if(colorOwned[z] > nextSmallest && colorOwned[z] < currentMax) {
+        nextSmallest = colorOwned[z];
+      }
+    }
+    if(nextSmallest == 0) break;
+    currentMax = nextSmallest;
+    nextSmallest = 0;
+  }
+  
+  if(backgroundShapes.length > 0) {
+    for(let i = backgroundShapes.length - 1;i >= 0;i--) {
+      backgroundShapes[i].display();
+    }
+  }
+  for (let shape of shapes) {
+    shape.display();
+  }
+}
+
+
+function draw() {
+  background(255);
+  if (backgroundShapes.length > 0) {
+    for (let i = backgroundShapes.length - 1; i >= 0; i--) {
+      backgroundShapes[i].display();
+    }
+  }
+  if(motionType == 1) {
+    for (let shape of shapes) {
+      if(movementEnabled) {
+        shape.interpolationFactor = constrain(map(noise(shape.noiseOffset), 0, 1, 0, 0.5), 0, 0.5);
+		
+        let angle = random(TWO_PI);
+        let moveAmount = random(0.5, 1);
+		
+        shape.x += cos(angle) * moveAmount;
+        shape.y += sin(angle) * moveAmount;
+
+        shape.x = constrain(shape.x, 0, width);
+        shape.y = constrain(shape.y, 0, height);
+      } else {
+        shape.x = lerp(shape.x, shape.originalX, shape.interpolationFactor);
+        shape.y = lerp(shape.y, shape.originalY, shape.interpolationFactor);
+      }
+      shape.noiseOffset += 0.01;
+      shape.display();
+    }
+  } else if(motionType == 2) {
+    if(movementEnabled) {
+      wavePosition += 0.02;
+    } else {
+      wavePosition = 0;
+    }
+    for (let shape of shapes) {
+      if (movementEnabled) {
+        let waveOffset = map(shape.x, 0, width, 0, TWO_PI);
+        let xOffset = shape.x * waveLength/width + waveOffset;
+        let shapeMoveY = sin(xOffset + wavePosition % TWO_PI) * waveHeight;
+        shape.y = lerp(shape.y, shape.originalY - shapeMoveY, 0.05);
+      } else {
+        shape.x = lerp(shape.x, shape.originalX, 0.1);
+        shape.y = lerp(shape.y, shape.originalY, 0.1);
+      }
+      shape.display();
+    }
+  } else {
+    for (let shape of shapes) {
+      let distance = dist(mouseX, mouseY, shape.x, shape.y);
+      let maxDistance = 600 * width / 4096;
+      let isMouseOverCanvas = mouseX > 5 && mouseX < width && mouseY > 5 && mouseY < height;
+      shape.interpolationFactor = constrain(map(distance, 0, maxDistance, 0, isMouseOverCanvas ? 0.15 : 0.5), 0, 0.5);
+      if (movementEnabled && distance < maxDistance && isMouseOverCanvas) {
+        let angle = atan2(shape.y - mouseY, shape.x - mouseX);
+        let moveAmount = map(distance, 0, maxDistance, 10, 0);
+        shape.x += cos(angle) * moveAmount;
+        shape.y += sin(angle) * moveAmount;
+      } else {
+        shape.x = lerp(shape.x, shape.originalX, shape.interpolationFactor);
+        shape.y = lerp(shape.y, shape.originalY, shape.interpolationFactor);
+      }
+      shape.display();
+    } 
+  }
+}
+
+function isOverlapping(x, y, size, factor) {
+  let buffer = 20 * factor;
+  for (let shape of shapes) {
+    let d = dist(x, y, shape.x, shape.y);
+    if (d < (shape.size + size) / 2 + buffer) {
+      return true;
+    }
+  }
+  return false;
+}
+
+class Shape {
+  constructor(x, y, size, cornerRadius, color, accentColor, shapeType, factor, hasAccent, accentDirection) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.color = color;
+    this.factor = factor;
+    this.accentColor = accentColor;
+    this.cornerRadius = cornerRadius;
+    this.shapeType = shapeType;
+    this.hasAccent = hasAccent;
+    this.accentDirection = accentDirection;
+    this.originalX = x;
+    this.originalY = y;
+    this.interpolationFactor = 0;
+    this.noiseOffset = 0;
+  }
+  
+  resetPosition() {
+    this.x = this.originalX;
+    this.y = this.originalY;
+  }
+
+  display() {
+    let shift = 12 * this.factor;
+    let shiftX = (shift * Math.cos(this.accentDirection * Math.PI/180));
+    let shiftY = (shift * Math.sin(this.accentDirection * Math.PI/180));
+    if(this.hasAccent) {
+      fill(this.accentColor);
+      noStroke();
+      if(this.shapeType == 0) {
+        ellipse(this.x + shiftX, this.y + shiftY, this.size, this.size); 
+      } else if(this.shapeType == 1) {
+        square((this.x - this.size / 2.828) + shiftX, (this.y - this.size / 2.828)  + shiftY, this.size / 1.414, this.cornerRadius, this.cornerRadius, this.cornerRadius, this.cornerRadius);
+      } else {
+        triangle(this.x + shiftX, this.y - (this.size * 0.5) + shiftY, this.x - (this.size * 0.433) + shiftX, this.y + (this.size * 0.250) + shiftY, this.x + (this.size * 0.433) + shiftX, this.y + (this.size * 0.250) + shiftY)
+      }
+    }
+    fill(this.color);
+    noStroke();
+    if(this.shapeType == 0) {
+      ellipse(this.x, this.y, this.size, this.size); 
+    } else if(this.shapeType == 1) {
+      square((this.x - this.size / 2.828), (this.y - this.size / 2.828), this.size / 1.414, this.cornerRadius, this.cornerRadius, this.cornerRadius, this.cornerRadius);
+    } else {
+      triangle(this.x, this.y - (this.size * 0.5), this.x - (this.size * 0.433), this.y + (this.size * 0.250), this.x + (this.size * 0.433), this.y + (this.size * 0.250))
+    }
+  }
+}
+
+class BackgroundShape {
+  constructor(x, y, sizeX, sizeY, color, shapeType) {
+    this.x = x;
+    this.y = y;
+    this.sizeX = sizeX;
+    this.sizeY = sizeY;
+    this.color = color;
+    this.shapeType = shapeType;
+  }
+
+  display() {
+    fill(this.color);
+    noStroke();
+    if(this.shapeType == 0) {
+      rect(this.x, this.y, this.sizeX, this.sizeY);  
+    } else {
+      ellipse(this.x, this.y, this.sizeX);
+    }
+  }
+}

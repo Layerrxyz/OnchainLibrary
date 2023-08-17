@@ -1,0 +1,919 @@
+[
+  {
+    "inputs": [],
+    "name": "AssetIsFinalized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AssetNotFinalized",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pointer",
+        "type": "address"
+      }
+    ],
+    "name": "DataAlreadyExists",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ExceedsChunkCount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ExceedsMaxChunkSize",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "HashMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotUploader",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WriteError",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "expectedSHA256Hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint32",
+        "name": "dataChunkCount",
+        "type": "uint32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "AssetAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "AssetFinalized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "actualSHA256Hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "AssetHashValidated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "expectedSHA256Hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint32",
+        "name": "dataChunkCount",
+        "type": "uint32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "AssetUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "chunkId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "chunkDataPointer",
+        "type": "address"
+      }
+    ],
+    "name": "DataChunkUploaded",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_CHUNK_SIZE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "expectedSHA256Hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "dataChunkCount",
+        "type": "uint32"
+      }
+    ],
+    "name": "addAsset",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "newAssetId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chunkId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "chunkDataPointer",
+        "type": "address"
+      }
+    ],
+    "name": "addChunkByAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "assets",
+    "outputs": [
+      {
+        "internalType": "uint56",
+        "name": "assetId",
+        "type": "uint56"
+      },
+      {
+        "internalType": "address",
+        "name": "uploadedBy",
+        "type": "address"
+      },
+      {
+        "internalType": "uint32",
+        "name": "dataChunkCount",
+        "type": "uint32"
+      },
+      {
+        "internalType": "bool",
+        "name": "finalized",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "hashValidated",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "expectedSHA256Hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "dataChunks",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "finalizeAsset",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAssetActualSHA256Hash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "assetHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAssetBase64",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "assetBase64",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAssetBytes",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "assetBytes",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAssetString",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "assetString",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "assetIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "getAssetsById",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint56",
+            "name": "assetId",
+            "type": "uint56"
+          },
+          {
+            "internalType": "address",
+            "name": "uploadedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "dataChunkCount",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "hashValidated",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedSHA256Hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IOnchainLibrary.Asset[]",
+        "name": "assetArr",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "dataChunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "getDataChunkAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "pointer",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isUploaded",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "getScript",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "script",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getUnfinalizedAssetActualSHA256Hash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "assetHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getUnfinalizedAssetBase64",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "assetBase64",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getUnfinalizedAssetBytes",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "assetBytes",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getUnfinalizedAssetString",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "assetString",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nextAssetId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "expectedHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "searchCatalogByExpectedHash",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint56",
+            "name": "assetId",
+            "type": "uint56"
+          },
+          {
+            "internalType": "address",
+            "name": "uploadedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "dataChunkCount",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "hashValidated",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedSHA256Hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IOnchainLibrary.Asset[]",
+        "name": "foundAssets",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "searchCatalogByName",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint56",
+            "name": "assetId",
+            "type": "uint56"
+          },
+          {
+            "internalType": "address",
+            "name": "uploadedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "dataChunkCount",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "hashValidated",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedSHA256Hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IOnchainLibrary.Asset[]",
+        "name": "foundAssets",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "uploadedBy",
+        "type": "address"
+      }
+    ],
+    "name": "searchCatalogByUploader",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint56",
+            "name": "assetId",
+            "type": "uint56"
+          },
+          {
+            "internalType": "address",
+            "name": "uploadedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "dataChunkCount",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "hashValidated",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedSHA256Hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IOnchainLibrary.Asset[]",
+        "name": "foundAssets",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "validatedHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "searchCatalogByValidatedHash",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint56",
+            "name": "assetId",
+            "type": "uint56"
+          },
+          {
+            "internalType": "address",
+            "name": "uploadedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "dataChunkCount",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "hashValidated",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedSHA256Hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IOnchainLibrary.Asset[]",
+        "name": "foundAssets",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "expectedSHA256Hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "dataChunkCount",
+        "type": "uint32"
+      }
+    ],
+    "name": "updateAsset",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "chunkId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "chunkData",
+        "type": "bytes"
+      }
+    ],
+    "name": "uploadChunk",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "validateActualAndExpectedHash",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "hashesMatch",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "validateActualAndExpectedHashOnchain",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "assetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "validateUnfinalizedActualAndExpectedHash",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "hashesMatch",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
